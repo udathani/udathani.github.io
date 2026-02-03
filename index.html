@@ -13,6 +13,11 @@
   gtag('config', 'G-WRCC7X20YJ');
 </script>
   <style>
+    /* Fear & Greed colors */
+.fng-red { background:#ffe5e5; color:#8b0000; border-color:#f5c2c2; }
+.fng-orange { background:#fff1e0; color:#8a4b00; border-color:#ffd8b5; }
+.fng-green { background:#e8f5e9; color:#1b5e20; border-color:#c8e6c9; }
+.fng-darkgreen { background:#e0f2f1; color:#004d40; border-color:#b2dfdb; }
     :root{
       --fg:#111;
       --muted:#555;
@@ -117,34 +122,51 @@
   </div>
 
   <!-- Fear & Greed API -->
-  <script>
-    async function loadFng(){
-      const v = document.getElementById('fng-value');
-      const l = document.getElementById('fng-label');
-      const t = document.getElementById('fng-time');
+  <<script>
+  async function loadFng(){
+    const v = document.getElementById('fng-value');
+    const l = document.getElementById('fng-label');
+    const t = document.getElementById('fng-time');
 
-      try{
-        const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        const json = await res.json();
-        const d = json && json.data && json.data[0];
-        if(!d) throw new Error('No data');
+    try{
+      const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json = await res.json();
+      const d = json && json.data && json.data[0];
+      if(!d) throw new Error('No data');
 
-        v.textContent = d.value; // "24"
-        l.textContent = d.value_classification; // "Extreme Fear"
+      const value = parseInt(d.value, 10);
+      const label = d.value_classification;
 
-        const ts = Number(d.timestamp) * 1000;
-        const dt = new Date(ts);
-        t.textContent = 'Update: ' + dt.toLocaleString('id-ID');
-      }catch(e){
-        v.textContent = '—';
-        l.textContent = 'Tidak tersedia';
-        t.textContent = 'Update: gagal ambil data (refresh halaman)';
-        console.log('FNG error:', e);
+      v.textContent = value;
+      l.textContent = label;
+      l.className = 'badge'; // reset class
+
+      // set color by range
+      if (value <= 24) {
+        l.classList.add('fng-red');
+      } else if (value <= 49) {
+        l.classList.add('fng-orange');
+      } else if (value <= 74) {
+        l.classList.add('fng-green');
+      } else {
+        l.classList.add('fng-darkgreen');
       }
+
+      const ts = Number(d.timestamp) * 1000;
+      const dt = new Date(ts);
+      t.textContent = 'Update: ' + dt.toLocaleString('id-ID');
+
+    } catch(e){
+      v.textContent = '—';
+      l.textContent = 'Tidak tersedia';
+      l.className = 'badge';
+      t.textContent = 'Update: gagal ambil data (refresh halaman)';
+      console.log('FNG error:', e);
     }
-    loadFng();
-  </script>
+  }
+  loadFng();
+</script>
 
 </body>
 </html>
