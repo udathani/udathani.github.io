@@ -4,27 +4,72 @@
   <meta charset="utf-8">
   <title>Cicil BTC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WRCC7X20YJ"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-WRCC7X20YJ');
-  </script>
-
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WRCC7X20YJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WRCC7X20YJ');
+</script>
   <style>
-    body {
-      max-width: 720px;
-      margin: 56px auto;
-      padding: 0 20px;
-      line-height: 1.6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    :root{
+      --fg:#111;
+      --muted:#555;
+      --line:#eee;
+      --bg:#fff;
     }
-    ...
+    *{box-sizing:border-box}
+    body{
+      max-width:720px;
+      margin:56px auto;
+      padding:0 20px;
+      line-height:1.6;
+      color:var(--fg);
+      background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    }
+    h1{margin:0 0 14px;font-size:44px}
+    h2{margin:0 0 10px;font-size:20px}
+    p{margin:0 0 14px;font-size:18px}
+    .muted{color:var(--muted);font-size:16px}
+    hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+
+    /* CTA */
+    .cta{
+      display:inline-block;
+      margin:18px 0 26px;
+      padding:12px 18px;
+      border:1px solid #000;
+      text-decoration:none;
+      color:#000;
+      font-size:16px;
+    }
+    .cta:hover{background:#000;color:#fff}
+
+    /* Section */
+    .section{margin-top:48px}
+
+    /* Fear & Greed card */
+    #fng{
+      margin-top:36px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+    }
+    .fng-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .badge{
+      padding:4px 8px;
+      border:1px solid var(--line);
+      font-size:14px;
+    }
   </style>
 </head>
+
 <body>
 
   <h1>Cicil BTC</h1>
@@ -43,11 +88,26 @@
 
   <p class="muted">
     Ini bukan saran investasi.<br>
-    Ini proyek pribadi saya untuk menabung jangka panjang (tujuan pribadi: pensiun),
-    dan saya bagikan agar bisa dipelajari bersama.
+    Ini proyek pribadi untuk disiplin menabung jangka panjang—dibagikan sebagai referensi.
   </p>
 
-  <!-- Section target CTA -->
+  <!-- Fear & Greed -->
+  <div id="fng" class="section">
+    <h2>Fear &amp; Greed (harian)</h2>
+
+    <div class="fng-row">
+      <span class="muted">Index:</span>
+      <strong id="fng-value">…</strong>
+      <span id="fng-label" class="badge">…</span>
+    </div>
+
+    <p class="muted" id="fng-time">Update: …</p>
+    <p class="muted">
+      Digunakan sebagai konteks psikologi pasar, bukan instruksi beli/jual.
+    </p>
+  </div>
+
+  <!-- Target CTA -->
   <div id="simulasi" class="section">
     <h2>Simulasi (Segera Hadir)</h2>
     <p class="muted">
@@ -55,6 +115,36 @@
       kebiasaan mencicil secara konsisten dalam jangka panjang.
     </p>
   </div>
+
+  <!-- Fear & Greed API -->
+  <script>
+    async function loadFng(){
+      const v = document.getElementById('fng-value');
+      const l = document.getElementById('fng-label');
+      const t = document.getElementById('fng-time');
+
+      try{
+        const res = await fetch('https://api.alternative.me/fng/?limit=1&format=json', {cache:'no-store'});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const json = await res.json();
+        const d = json && json.data && json.data[0];
+        if(!d) throw new Error('No data');
+
+        v.textContent = d.value; // "24"
+        l.textContent = d.value_classification; // "Extreme Fear"
+
+        const ts = Number(d.timestamp) * 1000;
+        const dt = new Date(ts);
+        t.textContent = 'Update: ' + dt.toLocaleString('id-ID');
+      }catch(e){
+        v.textContent = '—';
+        l.textContent = 'Tidak tersedia';
+        t.textContent = 'Update: gagal ambil data (refresh halaman)';
+        console.log('FNG error:', e);
+      }
+    }
+    loadFng();
+  </script>
 
 </body>
 </html>
