@@ -220,21 +220,7 @@
 
   let accBtc = 0;
 
-  let html = `
-    <table>
-      <thead>
-        <tr>
-          <th>Hari</th>
-          <th>Tanggal</th>
-          <th>F&amp;G</th>
-          <th>BTC USD</th>
-          <th>DCA</th>
-          <th>BTC dibeli</th>
-          <th>Akum BTC</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  let html = "";
 
   ENTRIES.forEach((e,i)=>{
     const c = classifyFng(e.fng_value);
@@ -242,20 +228,41 @@
     accBtc += r.btcBought;
 
     html += `
-      <tr>
-        <td class="mono">${i}</td>
-        <td class="mono">${e.date}</td>
-        <td class="mono">${e.fng_value}</td>
-        <td class="mono">$${Number(e.btc_usd).toLocaleString("en-US")}</td>
-        <td class="mono">${rupiah(r.dca)}</td>
-        <td class="mono">${r.btcBought.toFixed(8)}</td>
-        <td class="mono">${accBtc.toFixed(8)}</td>
-      </tr>
+      <div style="border-top:1px solid #eee; padding:10px 0;">
+        <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div class="muted">Hari ${i}</div>
+            <div class="mono">${e.date}</div>
+          </div>
+          <div>
+            <div class="muted">F&amp;G</div>
+            <div class="mono">${e.fng_value}</div>
+          </div>
+          <div>
+            <div class="muted">BTC USD</div>
+            <div class="mono">$${Number(e.btc_usd).toLocaleString("en-US")}</div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:10px;">
+          <div>
+            <div class="muted">DCA</div>
+            <div class="mono">${rupiah(r.dca)}</div>
+          </div>
+          <div>
+            <div class="muted">BTC dibeli</div>
+            <div class="mono">${r.btcBought.toFixed(8)}</div>
+          </div>
+          <div>
+            <div class="muted">Akum BTC</div>
+            <div class="mono">${accBtc.toFixed(8)}</div>
+          </div>
+        </div>
+      </div>
     `;
   });
 
-  html += `</tbody></table>`;
-  document.getElementById("table").innerHTML = html;
+  document.getElementById("table").innerHTML = html || "Belum ada data.";
 }
 
   document.getElementById("calcToday").onclick = ()=> {
