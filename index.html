@@ -1,208 +1,129 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <title>Cicil BTC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  function fmtIdr(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
+  function fmtUsd(n){ return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n); }
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WRCC7X20YJ"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-WRCC7X20YJ');
-  </script>
-
-  <style>
-    :root{
-      --fg:#111; --muted:#555; --line:#eee; --bg:#fff;
+  async function getJson(url, label){
+    const res = await fetch(url, { cache: 'no-store' });
+    if(!res.ok){
+      throw new Error(label + ' HTTP ' + res.status);
     }
-    *{box-sizing:border-box}
-    body{
-      max-width:720px; margin:56px auto; padding:0 20px;
-      line-height:1.6; color:var(--fg); background:var(--bg);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    }
-    h1{margin:0 0 14px;font-size:44px}
-    h2{margin:0 0 10px;font-size:20px}
-    p{margin:0 0 14px;font-size:18px}
-    .muted{color:var(--muted);font-size:16px}
-    hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+    return res.json();
+  }
 
-    .cta{
-      display:inline-block; margin:18px 0 26px; padding:12px 18px;
-      border:1px solid #000; text-decoration:none; color:#000; font-size:16px;
-    }
-    .cta:hover{background:#000;color:#fff}
-    .section{margin-top:48px}
+  async function getFngToday(){
+    const j = await getJson('https://api.alternative.me/fng/?limit=1&format=json', 'FNG');
+    const d = j && j.data && j.data[0];
+    if(!d) throw new Error('FNG no data');
+    return { value:+d.value, label:d.value_classification, ts:+d.timestamp*1000 };
+  }
 
-    /* Fear & Greed card */
-    #fng{margin-top:36px; padding:14px 16px; border:1px solid var(--line)}
-    .fng-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
-    .badge{padding:4px 8px; border:1px solid var(--line); font-size:14px}
-
-    /* Colors */
-    .fng-red{background:#ffe5e5;color:#8b0000;border-color:#f5c2c2}
-    .fng-orange{background:#fff1e0;color:#8a4b00;border-color:#ffd8b5}
-    .fng-green{background:#e8f5e9;color:#1b5e20;border-color:#c8e6c9}
-    .fng-darkgreen{background:#e0f2f1;color:#004d40;border-color:#b2dfdb}
-  </style>
-</head>
-
-<body>
-
-  <h1>Cicil BTC</h1>
-
-  <p><strong>Belajar mengumpulkan Bitcoin secara bertahap dan konsisten.</strong></p>
-
-  <p>
-    Cicil BTC adalah simulasi sederhana untuk membantu membangun kebiasaan,
-    bukan untuk menebak harga atau mengatur waktu pasar.
-  </p>
-
-  <a href="#simulasi" class="cta">Coba simulasi sederhana</a>
-
-  <hr>
-
-  <p class="muted">
-    Ini bukan saran investasi.<br>
-    Ini proyek pribadi untuk disiplin menabung jangka panjang—dibagikan sebagai referensi.
-  </p>
-
-  <!-- Fear & Greed -->
-  <div id="fng" class="section">
-    <h2>Fear &amp; Greed (harian)</h2>
-    <div class="fng-row">
-      <span class="muted">Index:</span>
-      <strong id="fng-value">…</strong>
-      <span id="fng-label" class="badge">Memuat…</span>
-    </div>
-    <p class="muted" id="fng-time">Update: …</p>
-    <p class="muted">Digunakan sebagai konteks psikologi pasar, bukan instruksi beli/jual.</p>
-  </div>
-
-  <!-- Simulator -->
-  <div id="simulasi" class="section">
-    <h2>Simulator Cicil (Forward Only)</h2>
-    <p class="muted">Simulasi dimulai dari hari ini. Tidak tersedia simulasi ke masa lalu.</p>
-
-    <div style="margin-top:14px; padding:14px 16px; border:1px solid var(--line);">
-      <p><strong>Strategi cicil</strong></p>
-      <label style="display:block; margin-bottom:8px;">
-        <input type="radio" name="strategy" value="extreme" checked> Extreme Fear saja
-      </label>
-      <label style="display:block; margin-bottom:8px;">
-        <input type="radio" name="strategy" value="fear"> Fear + Extreme Fear
-      </label>
-
-      <hr>
-
-      <p><strong>Nominal per hari (IDR)</strong></p>
-      <input id="amountIdr" type="number" inputmode="numeric" value="1000000"
-             style="width:100%; padding:10px; border:1px solid var(--line); font-size:16px;">
-      <p class="muted">Nominal tetap. Tidak ada aksi jual.</p>
-
-      <a href="#simulasi" class="cta" id="runSimBtn">Jalankan simulasi</a>
-
-      <div id="simResult" style="display:none; margin-top:16px;">
-        <hr>
-        <p><strong>Hasil (hari ini)</strong></p>
-        <p class="muted">Fear &amp; Greed: <strong><span id="rFngValue">-</span></strong> — <span id="rFngLabel">-</span></p>
-        <p class="muted">Harga BTC (USD): <strong>$<span id="rBtcUsd">-</span></strong></p>
-        <p class="muted">Dana disetor: <strong>Rp <span id="rFiat">-</span></strong></p>
-        <p class="muted">BTC terkumpul: <strong><span id="rBtc">-</span> BTC</strong></p>
-        <p class="muted">
-          Nilai BTC (IDR): <strong>Rp <span id="rValueIdr">-</span></strong>
-          <span id="rPnlBadge" class="badge" style="margin-left:8px;">-</span>
-        </p>
-        <p class="muted">Warna hanya menunjukkan hasil simulasi, bukan saran investasi.</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts (di bawah agar elemen sudah ada) -->
-  <script>
-    function fmtIdr(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
-    function fmtUsd(n){ return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n); }
-
-    async function getFngToday(){
-      const r = await fetch('https://api.alternative.me/fng/?limit=1&format=json',{cache:'no-store'});
-      if(!r.ok) throw new Error('FNG');
-      const j = await r.json(); const d = j.data[0];
-      return { value:+d.value, label:d.value_classification, ts:+d.timestamp*1000 };
-    }
-
-    async function getBtcPrice(){
-      const r = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,idr',
-        {cache:'no-store'}
+  // Harga BTC USD: coba CoinGecko, kalau gagal fallback Coinbase
+  async function getBtcUsd(){
+    // 1) CoinGecko
+    try{
+      const j = await getJson(
+        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+        'CoinGecko'
       );
-      if(!r.ok) throw new Error('BTC');
-      const j = await r.json();
-      return { usd:+j.bitcoin.usd, idr:+j.bitcoin.idr };
+      const usd = Number(j.bitcoin.usd);
+      if(!usd) throw new Error('CoinGecko invalid');
+      return usd;
+    }catch(e){
+      console.log('CoinGecko failed:', e);
     }
 
-    function colorBadge(v, el){
-      el.className='badge';
-      if(v<=24) el.classList.add('fng-red');
-      else if(v<=49) el.classList.add('fng-orange');
-      else if(v<=74) el.classList.add('fng-green');
-      else el.classList.add('fng-darkgreen');
+    // 2) Coinbase fallback
+    const j2 = await getJson('https://api.coinbase.com/v2/prices/BTC-USD/spot', 'Coinbase');
+    const usd2 = Number(j2.data.amount);
+    if(!usd2) throw new Error('Coinbase invalid');
+    return usd2;
+  }
+
+  // Kurs USD->IDR (lebih stabil)
+  async function getUsdIdr(){
+    const j = await getJson('https://open.er-api.com/v6/latest/USD', 'FX');
+    const idr = Number(j.rates && j.rates.IDR);
+    if(!idr) throw new Error('FX invalid');
+    return idr;
+  }
+
+  function colorBadge(v, el){
+    el.className='badge';
+    if(v<=24) el.classList.add('fng-red');
+    else if(v<=49) el.classList.add('fng-orange');
+    else if(v<=74) el.classList.add('fng-green');
+    else el.classList.add('fng-darkgreen');
+  }
+
+  function shouldBuy(strategy, v){
+    return strategy==='extreme' ? v<=24 : v<=49;
+  }
+
+  async function loadFngCard(){
+    try{
+      const f = await getFngToday();
+      document.getElementById('fng-value').textContent = f.value;
+      const lab = document.getElementById('fng-label');
+      lab.textContent = f.label;
+      colorBadge(f.value, lab);
+      document.getElementById('fng-time').textContent =
+        'Update: ' + new Date(f.ts).toLocaleString('id-ID');
+    }catch(e){
+      document.getElementById('fng-value').textContent='—';
+      document.getElementById('fng-label').textContent='Tidak tersedia';
+      console.log('FNG card error:', e);
     }
+  }
 
-    function shouldBuy(strategy, v){
-      return strategy==='extreme' ? v<=24 : v<=49;
-    }
+  async function runSim(){
+    const amount = +document.getElementById('amountIdr').value || 0;
+    if(amount<=0){ alert('Nominal harus > 0'); return; }
 
-    async function loadFngCard(){
-      try{
-        const f = await getFngToday();
-        document.getElementById('fng-value').textContent = f.value;
-        const lab = document.getElementById('fng-label');
-        lab.textContent = f.label; colorBadge(f.value, lab);
-        document.getElementById('fng-time').textContent =
-          'Update: '+new Date(f.ts).toLocaleString('id-ID');
-      }catch(e){
-        document.getElementById('fng-value').textContent='—';
-        document.getElementById('fng-label').textContent='Tidak tersedia';
-      }
-    }
+    const strategy = document.querySelector('input[name="strategy"]:checked').value;
 
-    async function runSim(){
-      const amount = +document.getElementById('amountIdr').value||0;
-      if(amount<=0){ alert('Nominal harus > 0'); return; }
-      const strategy = document.querySelector('input[name="strategy"]:checked').value;
+    // tampilkan hasil box nanti
+    document.getElementById('simResult').style.display = 'none';
 
-      const [f, btc] = await Promise.all([getFngToday(), getBtcPrice()]);
+    try{
+      // Ambil data (FNG + BTC USD + FX)
+      const [f, btcUsd, usdIdr] = await Promise.all([getFngToday(), getBtcUsd(), getUsdIdr()]);
+      const btcIdr = btcUsd * usdIdr;
+
       const buy = shouldBuy(strategy, f.value);
       const fiat = buy ? amount : 0;
-      const btcBought = buy ? (amount / btc.idr) : 0;
-      const val = btcBought * btc.idr;
+      const btcBought = buy ? (amount / btcIdr) : 0;
+      const val = btcBought * btcIdr;
 
-      document.getElementById('rFngValue').textContent=f.value;
-      document.getElementById('rFngLabel').textContent=f.label;
-      document.getElementById('rBtcUsd').textContent=fmtUsd(btc.usd);
-      document.getElementById('rFiat').textContent=fmtIdr(fiat);
-      document.getElementById('rBtc').textContent=btcBought.toFixed(8);
-      document.getElementById('rValueIdr').textContent=fmtIdr(val);
+      document.getElementById('rFngValue').textContent = f.value;
+      document.getElementById('rFngLabel').textContent = f.label;
 
-      const b=document.getElementById('rPnlBadge'); b.className='badge';
+      document.getElementById('rBtcUsd').textContent = fmtUsd(btcUsd);
+      document.getElementById('rFiat').textContent = fmtIdr(fiat);
+      document.getElementById('rBtc').textContent = btcBought.toFixed(8);
+      document.getElementById('rValueIdr').textContent = fmtIdr(val);
+
+      const b = document.getElementById('rPnlBadge');
+      b.className = 'badge';
       if(val>fiat){ b.textContent='HIJAU'; b.classList.add('fng-green'); }
       else if(val<fiat){ b.textContent='MERAH'; b.classList.add('fng-red'); }
       else b.textContent='NETRAL';
 
-      document.getElementById('simResult').style.display='block';
-      if(typeof gtag==='function') gtag('event','sim_run',{event_category:'engagement',event_label:strategy});
+      document.getElementById('simResult').style.display = 'block';
+
+      // GA event
+      if(typeof gtag==='function'){
+        gtag('event','sim_run',{event_category:'engagement',event_label:strategy});
+      }
+
+    }catch(err){
+      console.log('SIM error:', err);
+      alert('Gagal ambil data: ' + err.message);
     }
+  }
 
-    document.addEventListener('DOMContentLoaded',()=>{
-      loadFngCard();
-      document.getElementById('runSimBtn').addEventListener('click',e=>{
-        e.preventDefault(); runSim();
-      });
-    });
-  </script>
-
-</body>
-</html>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    loadFngCard();
+    const btn = document.getElementById('runSimBtn');
+    btn.addEventListener('click', (e)=>{ e.preventDefault(); runSim(); });
+  });
+</script>
