@@ -215,50 +215,48 @@
   }
 
   function renderTable(){
-    const amount = Number(document.getElementById("amount").value || 0);
-    if(amount <= 0){ return; }
+  const amount = Number(document.getElementById("amount").value || 0);
+  if(amount <= 0){ return; }
 
-    let accBtc = 0;
+  let accBtc = 0;
 
-    let html = `
-      <table>
-        <thead>
-          <tr>
-            <th>Hari</th>
-            <th>Tanggal</th>
-            <th>F&amp;G</th>
-            <th>Label (aturan saya)</th>
-            <th>Harga BTC</th>
-            <th>DCA</th>
-            <th>BTC dibeli</th>
-            <th>Akumulasi BTC</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    ENTRIES.forEach((e,i)=>{
-      const c = classifyFng(e.fng_value);
-      const r = calcDcaForEntry(e, amount);
-      accBtc += r.btcBought;
-
-      html += `
+  let html = `
+    <table>
+      <thead>
         <tr>
-          <td class="mono">${i}</td>
-          <td class="mono">${e.date}</td>
-          <td>${e.fng_value}</td>
-          <td><span class="badge ${c.cls}">${c.label}</span> ${c.dcaOn ? "" : ""}</td>
-          <td>${rupiah(e.btc_idr)}</td>
-          <td>${rupiah(r.dca)}</td>
-          <td class="mono">${r.btcBought.toFixed(8)}</td>
-          <td class="mono">${accBtc.toFixed(8)}</td>
+          <th>Hari</th>
+          <th>Tanggal</th>
+          <th>F&amp;G</th>
+          <th>BTC USD</th>
+          <th>DCA</th>
+          <th>BTC dibeli</th>
+          <th>Akum BTC</th>
         </tr>
-      `;
-    });
+      </thead>
+      <tbody>
+  `;
 
-    html += `</tbody></table>`;
-    document.getElementById("table").innerHTML = html;
-  }
+  ENTRIES.forEach((e,i)=>{
+    const c = classifyFng(e.fng_value);
+    const r = calcDcaForEntry(e, amount);
+    accBtc += r.btcBought;
+
+    html += `
+      <tr>
+        <td class="mono">${i}</td>
+        <td class="mono">${e.date}</td>
+        <td class="mono">${e.fng_value}</td>
+        <td class="mono">$${Number(e.btc_usd).toLocaleString("en-US")}</td>
+        <td class="mono">${rupiah(r.dca)}</td>
+        <td class="mono">${r.btcBought.toFixed(8)}</td>
+        <td class="mono">${accBtc.toFixed(8)}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("table").innerHTML = html;
+}
 
   document.getElementById("calcToday").onclick = ()=> {
     if(ENTRIES.length === 0) return;
