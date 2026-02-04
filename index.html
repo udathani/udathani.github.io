@@ -18,33 +18,36 @@
     :root{ --fg:#111; --muted:#555; --line:#eee; --bg:#fff; }
     *{box-sizing:border-box}
     body{
-      max-width:720px; margin:56px auto; padding:0 20px;
-      line-height:1.6; color:var(--fg); background:var(--bg);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      max-width:720px; margin:40px auto; padding:0 16px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--fg); line-height:1.6; background:var(--bg);
     }
-    h1{margin:0 0 14px;font-size:44px}
-    h2{margin:24px 0 10px;font-size:20px}
-    p{margin:0 0 14px;font-size:18px}
-    .muted{color:var(--muted);font-size:16px}
-    hr{border:0;border-top:1px solid var(--line);margin:22px 0}
-    .card{padding:14px 16px;border:1px solid var(--line);margin-top:14px}
+    h1{font-size:42px;margin:0 0 8px}
+    h2{margin:26px 0 10px}
+    p{margin:0 0 12px}
+    .muted{color:var(--muted);font-size:15px}
+    hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+    .card{border:1px solid var(--line);padding:16px;margin-top:16px}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .badge{padding:4px 8px;border:1px solid var(--line);font-size:14px}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border-top:1px solid var(--line);padding:8px 0;text-align:left;font-size:14px}
-    th{font-weight:600}
-
-    .fng-red{background:#ffe5e5;color:#8b0000;border-color:#f5c2c2}
-    .fng-orange{background:#fff1e0;color:#8a4b00;border-color:#ffd8b5}
-    .fng-green{background:#e8f5e9;color:#1b5e20;border-color:#c8e6c9}
-    .fng-darkgreen{background:#e0f2f1;color:#004d40;border-color:#b2dfdb}
-
+    .mono{font-family:ui-monospace,Menlo,monospace}
+    .btn{
+      padding:10px 14px; border:1px solid #000; background:#000; color:#fff;
+      cursor:pointer; margin-top:10px;
+    }
     .cta{
-      display:inline-block;margin:18px 0 10px;padding:12px 18px;
-      border:1px solid #000;text-decoration:none;color:#000;font-size:16px;
+      display:inline-block; margin:18px 0 10px; padding:12px 18px;
+      border:1px solid #000; text-decoration:none; color:#000; font-size:16px;
     }
     .cta:hover{background:#000;color:#fff}
+    .badge{padding:3px 8px;border:1px solid #ddd;font-size:13px}
+
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-top:1px solid var(--line);padding:8px 0;font-size:14px;text-align:left;vertical-align:top}
+    th{font-weight:600}
+
+    .red{background:#ffe5e5;color:#8b0000;border-color:#f5c2c2}
+    .orange{background:#fff1e0;color:#8a4b00;border-color:#ffd8b5}
+    .gray{background:#f5f5f5;color:#333;border-color:#ddd}
   </style>
 </head>
 
@@ -65,157 +68,232 @@
     Ini bukan saran investasi. Ini proyek pribadi untuk disiplin menabung jangka panjang.
   </p>
 
+  <div class="card">
+    <h2>Aturan DCA (punya saya)</h2>
+    <p class="muted" style="margin-top:6px">
+      • <strong>0–25</strong> = Extreme Fear → <strong>DCA ON</strong><br>
+      • <strong>26–30</strong> = Fear → <strong>DCA ON</strong><br>
+      • <strong>31–100</strong> = No DCA → <strong>DCA = 0</strong>
+    </p>
+  </div>
+
   <div class="card" id="latest">
     <h2>Snapshot terbaru</h2>
-    <p class="muted" id="status">Memuat data…</p>
+    <p id="status" class="muted">Memuat data…</p>
+
+    <p>Tanggal: <strong id="d-date">—</strong></p>
 
     <div class="row">
-      <span class="muted">Tanggal:</span> <strong id="d-date">—</strong>
-    </div>
-    <div class="row" style="margin-top:6px;">
-      <span class="muted">Fear &amp; Greed:</span>
+      <span>Fear &amp; Greed:</span>
       <strong id="d-fng">—</strong>
-      <span id="d-fng-badge" class="badge">—</span>
+      <span id="d-fng-label" class="badge">—</span>
+      <span id="d-dca-flag" class="badge">—</span>
     </div>
-    <div class="row" style="margin-top:6px;">
-      <span class="muted">BTC USD:</span> <strong id="d-usd">—</strong>
-    </div>
-    <div class="row" style="margin-top:6px;">
-      <span class="muted">BTC IDR:</span> <strong id="d-idr">—</strong>
-    </div>
-    <p class="muted" id="d-source" style="margin-top:10px;">—</p>
+
+    <p>Harga BTC (IDR): <strong id="d-btc-idr">—</strong></p>
+
+    <hr>
+
+    <h3 style="margin:0 0 10px">DCA hari ini</h3>
+
+    <label class="muted">Nominal cicil per hari (IDR)</label><br>
+    <input id="amount" type="number" value="1000000" style="padding:8px;width:220px;border:1px solid var(--line)">
+    <br>
+    <button class="btn" id="calcToday">Hitung DCA hari ini</button>
+
+    <div id="todayOut" class="muted" style="margin-top:12px">—</div>
   </div>
 
   <div class="card" id="acc">
     <h2>Akumulasi (berdasarkan log)</h2>
-    <p class="muted">Masukkan nominal cicil per hari (IDR) untuk menghitung akumulasi dari Day 0 sampai hari ini.</p>
-
-    <div class="row" style="margin-top:10px;">
-      <span class="muted">Nominal per hari:</span>
-      <input id="amountIdr" type="number" inputmode="numeric" value="1000000"
-        style="flex:1;min-width:160px;padding:10px;border:1px solid var(--line);font-size:16px;">
-      <button id="btnCalc" style="padding:10px 14px;border:1px solid #000;background:#000;color:#fff;">
-        Hitung
-      </button>
-    </div>
-
-    <div style="margin-top:12px" id="accOut" class="muted">—</div>
+    <p class="muted">
+      Menghitung akumulasi dari Day 0 sampai hari ini berdasarkan aturan DCA di atas.
+    </p>
+    <button class="btn" id="calcAcc">Hitung akumulasi</button>
+    <div id="accOut" class="muted" style="margin-top:12px">—</div>
   </div>
 
   <div class="card" id="log">
     <h2>Log harian</h2>
-    <div id="logWrap" class="muted">Memuat…</div>
+    <div id="table" class="muted">Memuat…</div>
   </div>
 
-  <script>
-    function fmtIdr(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
-    function fmtUsd(n){ return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n); }
+<script>
+  function rupiah(n){
+    return "Rp " + new Intl.NumberFormat("id-ID").format(Math.round(n));
+  }
 
-    function colorBadge(v, el){
-      el.className='badge';
-      if(v<=24) el.classList.add('fng-red');
-      else if(v<=49) el.classList.add('fng-orange');
-      else if(v<=74) el.classList.add('fng-green');
-      else el.classList.add('fng-darkgreen');
+  function classifyFng(v){
+    // aturan label kamu (bukan standar umum)
+    if(v <= 25) return { label: "Extreme Fear", cls: "red", dcaOn: true };
+    if(v <= 30) return { label: "Fear", cls: "orange", dcaOn: true };
+    return { label: "No DCA", cls: "gray", dcaOn: false };
+  }
+
+  async function loadLog(){
+    const res = await fetch("/data/log.json?v=" + Date.now(), { cache: "no-store" });
+    if(!res.ok) throw new Error("log.json HTTP " + res.status);
+    return await res.json();
+  }
+
+  let ENTRIES = [];
+
+  function renderSnapshot(latest){
+    const c = classifyFng(latest.fng_value);
+
+    document.getElementById("status").innerText = "OK: data terbaca dari log.json";
+    document.getElementById("d-date").innerText = latest.date;
+    document.getElementById("d-fng").innerText = String(latest.fng_value);
+
+    const lbl = document.getElementById("d-fng-label");
+    lbl.className = "badge " + c.cls;
+    lbl.innerText = c.label;
+
+    const flag = document.getElementById("d-dca-flag");
+    flag.className = "badge " + (c.dcaOn ? "red" : "gray");
+    flag.innerText = c.dcaOn ? "DCA ON" : "DCA = 0";
+
+    document.getElementById("d-btc-idr").innerText = rupiah(latest.btc_idr);
+  }
+
+  function calcDcaForEntry(entry, amountIdr){
+    const c = classifyFng(entry.fng_value);
+    const dca = c.dcaOn ? amountIdr : 0;
+    const btcBought = dca > 0 ? (dca / entry.btc_idr) : 0;
+    return { dca, btcBought, c };
+  }
+
+  function renderToday(latest){
+    const amount = Number(document.getElementById("amount").value || 0);
+    if(amount <= 0){ alert("Nominal harus > 0"); return; }
+
+    const r = calcDcaForEntry(latest, amount);
+
+    const out =
+      `Aturan hari ini: <strong>${r.c.label}</strong> (${latest.fng_value}) → <strong>${r.c.dcaOn ? "DCA ON" : "DCA = 0"}</strong><br>` +
+      `Harga BTC hari ini: <strong>${rupiah(latest.btc_idr)}</strong><br>` +
+      `DCA hari ini: <strong>${rupiah(r.dca)}</strong><br>` +
+      `BTC dibeli hari ini: <strong class="mono">${r.btcBought.toFixed(8)}</strong> BTC`;
+
+    document.getElementById("todayOut").innerHTML = out;
+
+    if(typeof gtag === "function"){
+      gtag("event","dca_today_calc",{event_category:"engagement"});
+    }
+  }
+
+  function renderAcc(){
+    const amount = Number(document.getElementById("amount").value || 0);
+    if(amount <= 0){ alert("Nominal harus > 0"); return; }
+    if(ENTRIES.length === 0){ return; }
+
+    let totalFiat = 0;
+    let totalBtc = 0;
+
+    for(const e of ENTRIES){
+      const r = calcDcaForEntry(e, amount);
+      totalFiat += r.dca;
+      totalBtc += r.btcBought;
     }
 
-    function shouldBuy(strategy, v){
-      // default: Extreme Fear + Fear
-      // (kita pakai ini untuk akumulasi awal)
-      return v <= 49;
-    }
+    const latest = ENTRIES[ENTRIES.length - 1];
+    const valueNow = totalBtc * latest.btc_idr;
+    const pnl = valueNow - totalFiat;
+    const pnlPct = totalFiat > 0 ? (pnl / totalFiat) * 100 : 0;
 
-    async function loadLog(){
-      const res = await fetch('/data/log.json?v=' + Date.now(), { cache:'no-store' });
-      if(!res.ok) throw new Error('log.json HTTP ' + res.status);
-      return await res.json();
-    }
+    const out =
+      `Total hari log: <strong>${ENTRIES.length}</strong><br>` +
+      `Total dana disetor: <strong>${rupiah(totalFiat)}</strong><br>` +
+      `Total BTC terkumpul: <strong class="mono">${totalBtc.toFixed(8)}</strong> BTC<br>` +
+      `Nilai BTC (harga terbaru): <strong>${rupiah(valueNow)}</strong><br>` +
+      `PnL: <strong>${rupiah(pnl)}</strong> (${pnlPct.toFixed(2)}%)`;
 
-    function renderLatest(e){
-      document.getElementById('d-date').textContent = e.date;
-      document.getElementById('d-fng').textContent = String(e.fng_value);
-      const badge = document.getElementById('d-fng-badge');
-      badge.textContent = e.fng_label;
-      colorBadge(e.fng_value, badge);
-      document.getElementById('d-usd').textContent = '$' + fmtUsd(e.btc_usd);
-      document.getElementById('d-idr').textContent = 'Rp ' + fmtIdr(e.btc_idr);
-      document.getElementById('d-source').textContent = e.source || '—';
-    }
+    document.getElementById("accOut").innerHTML = out;
 
-    function renderTable(entries){
-      let html = '<table><thead><tr><th>Hari</th><th>Tanggal</th><th>F&G</th><th>BTC IDR</th></tr></thead><tbody>';
-      for(let i=0;i<entries.length;i++){
-        const e = entries[i];
-        html += `<tr>
+    if(typeof gtag === "function"){
+      gtag("event","acc_calc",{event_category:"engagement"});
+    }
+  }
+
+  function renderTable(){
+    const amount = Number(document.getElementById("amount").value || 0);
+    if(amount <= 0){ return; }
+
+    let accBtc = 0;
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Hari</th>
+            <th>Tanggal</th>
+            <th>F&amp;G</th>
+            <th>Label (aturan saya)</th>
+            <th>Harga BTC</th>
+            <th>DCA</th>
+            <th>BTC dibeli</th>
+            <th>Akumulasi BTC</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    ENTRIES.forEach((e,i)=>{
+      const c = classifyFng(e.fng_value);
+      const r = calcDcaForEntry(e, amount);
+      accBtc += r.btcBought;
+
+      html += `
+        <tr>
           <td class="mono">${i}</td>
           <td class="mono">${e.date}</td>
-          <td>${e.fng_value} (${e.fng_label})</td>
-          <td>Rp ${fmtIdr(e.btc_idr)}</td>
-        </tr>`;
-      }
-      html += '</tbody></table>';
-      document.getElementById('logWrap').innerHTML = html;
-    }
-
-    function calcAccum(entries, amountIdr){
-      // Strategi default: cicil saat F&G <= 49 (Fear + Extreme Fear)
-      let totalFiat = 0;
-      let totalBtc = 0;
-
-      for(const e of entries){
-        if(shouldBuy('fear', e.fng_value)){
-          totalFiat += amountIdr;
-          totalBtc += amountIdr / e.btc_idr;
-        }
-      }
-
-      const latest = entries[entries.length - 1];
-      const valueNow = totalBtc * latest.btc_idr;
-
-      const pnl = valueNow - totalFiat;
-      const pnlPct = totalFiat > 0 ? (pnl / totalFiat) * 100 : 0;
-
-      return { totalFiat, totalBtc, valueNow, pnl, pnlPct };
-    }
-
-    document.addEventListener('DOMContentLoaded', async ()=>{
-      try{
-        const log = await loadLog();
-        const entries = log.entries || [];
-        if(entries.length === 0){
-          document.getElementById('status').textContent = 'Belum ada data. Tunggu GitHub Actions menulis log.';
-          document.getElementById('logWrap').textContent = 'Belum ada data.';
-          return;
-        }
-
-        document.getElementById('status').textContent = 'OK: data terambil dari log.json';
-        const latest = entries[entries.length - 1];
-        renderLatest(latest);
-        renderTable(entries);
-
-        const btn = document.getElementById('btnCalc');
-        btn.addEventListener('click', ()=>{
-          const amount = Number(document.getElementById('amountIdr').value || 0);
-          if(amount <= 0){ alert('Nominal harus > 0'); return; }
-          const r = calcAccum(entries, amount);
-          const out = `
-Total hari log: ${entries.length}<br>
-Hari aktif (F&G ≤ 49): ${entries.filter(e => e.fng_value <= 49).length}<br>
-Total dana disetor: Rp ${fmtIdr(r.totalFiat)}<br>
-Total BTC terkumpul: ${r.totalBtc.toFixed(8)} BTC<br>
-Nilai BTC (harga terbaru): Rp ${fmtIdr(r.valueNow)}<br>
-PnL: Rp ${fmtIdr(r.pnl)} (${r.pnlPct.toFixed(2)}%)
-          `;
-          document.getElementById('accOut').innerHTML = out;
-          if(typeof gtag === 'function') gtag('event','acc_calc',{event_category:'engagement'});
-        });
-
-      }catch(err){
-        console.log(err);
-        document.getElementById('status').textContent = 'Gagal memuat log.json. Refresh halaman.';
-        document.getElementById('logWrap').textContent = 'Gagal memuat log.json.';
-      }
+          <td>${e.fng_value}</td>
+          <td><span class="badge ${c.cls}">${c.label}</span> ${c.dcaOn ? "" : ""}</td>
+          <td>${rupiah(e.btc_idr)}</td>
+          <td>${rupiah(r.dca)}</td>
+          <td class="mono">${r.btcBought.toFixed(8)}</td>
+          <td class="mono">${accBtc.toFixed(8)}</td>
+        </tr>
+      `;
     });
-  </script>
+
+    html += `</tbody></table>`;
+    document.getElementById("table").innerHTML = html;
+  }
+
+  document.getElementById("calcToday").onclick = ()=> {
+    if(ENTRIES.length === 0) return;
+    renderToday(ENTRIES[ENTRIES.length - 1]);
+    renderTable();
+  };
+
+  document.getElementById("calcAcc").onclick = ()=> {
+    renderAcc();
+    renderTable();
+  };
+
+  (async ()=>{
+    try{
+      const data = await loadLog();
+      ENTRIES = data.entries || [];
+      if(ENTRIES.length === 0){
+        document.getElementById("status").innerText = "Belum ada data log.";
+        document.getElementById("table").innerText = "Belum ada data log.";
+        return;
+      }
+
+      const latest = ENTRIES[ENTRIES.length - 1];
+      renderSnapshot(latest);
+      renderToday(latest);
+      renderAcc();
+      renderTable();
+    }catch(err){
+      console.log(err);
+      document.getElementById("status").innerText = "Gagal memuat log.json. Refresh halaman.";
+      document.getElementById("table").innerText = "Gagal memuat log.json.";
+    }
+  })();
+</script>
+
 </body>
 </html>
