@@ -1,129 +1,221 @@
-<script>
-  function fmtIdr(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
-  function fmtUsd(n){ return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n); }
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Cicil BTC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  async function getJson(url, label){
-    const res = await fetch(url, { cache: 'no-store' });
-    if(!res.ok){
-      throw new Error(label + ' HTTP ' + res.status);
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WRCC7X20YJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-WRCC7X20YJ');
+  </script>
+
+  <style>
+    :root{ --fg:#111; --muted:#555; --line:#eee; --bg:#fff; }
+    *{box-sizing:border-box}
+    body{
+      max-width:720px; margin:56px auto; padding:0 20px;
+      line-height:1.6; color:var(--fg); background:var(--bg);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     }
-    return res.json();
-  }
+    h1{margin:0 0 14px;font-size:44px}
+    h2{margin:24px 0 10px;font-size:20px}
+    p{margin:0 0 14px;font-size:18px}
+    .muted{color:var(--muted);font-size:16px}
+    hr{border:0;border-top:1px solid var(--line);margin:22px 0}
+    .card{padding:14px 16px;border:1px solid var(--line);margin-top:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .badge{padding:4px 8px;border:1px solid var(--line);font-size:14px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-top:1px solid var(--line);padding:8px 0;text-align:left;font-size:14px}
+    th{font-weight:600}
 
-  async function getFngToday(){
-    const j = await getJson('https://api.alternative.me/fng/?limit=1&format=json', 'FNG');
-    const d = j && j.data && j.data[0];
-    if(!d) throw new Error('FNG no data');
-    return { value:+d.value, label:d.value_classification, ts:+d.timestamp*1000 };
-  }
+    .fng-red{background:#ffe5e5;color:#8b0000;border-color:#f5c2c2}
+    .fng-orange{background:#fff1e0;color:#8a4b00;border-color:#ffd8b5}
+    .fng-green{background:#e8f5e9;color:#1b5e20;border-color:#c8e6c9}
+    .fng-darkgreen{background:#e0f2f1;color:#004d40;border-color:#b2dfdb}
 
-  // Harga BTC USD: coba CoinGecko, kalau gagal fallback Coinbase
-  async function getBtcUsd(){
-    // 1) CoinGecko
-    try{
-      const j = await getJson(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-        'CoinGecko'
-      );
-      const usd = Number(j.bitcoin.usd);
-      if(!usd) throw new Error('CoinGecko invalid');
-      return usd;
-    }catch(e){
-      console.log('CoinGecko failed:', e);
+    .cta{
+      display:inline-block;margin:18px 0 10px;padding:12px 18px;
+      border:1px solid #000;text-decoration:none;color:#000;font-size:16px;
+    }
+    .cta:hover{background:#000;color:#fff}
+  </style>
+</head>
+
+<body>
+  <h1>Cicil BTC</h1>
+
+  <p><strong>Belajar mengumpulkan Bitcoin secara bertahap dan konsisten.</strong></p>
+  <p class="muted">
+    Ini catatan hidup (forward-only). Data diambil otomatis oleh GitHub Actions dan disimpan di
+    <span class="mono">/data/log.json</span>.
+  </p>
+
+  <a class="cta" href="#log">Lihat log harian</a>
+
+  <hr>
+
+  <p class="muted">
+    Ini bukan saran investasi. Ini proyek pribadi untuk disiplin menabung jangka panjang.
+  </p>
+
+  <div class="card" id="latest">
+    <h2>Snapshot terbaru</h2>
+    <p class="muted" id="status">Memuat data…</p>
+
+    <div class="row">
+      <span class="muted">Tanggal:</span> <strong id="d-date">—</strong>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <span class="muted">Fear &amp; Greed:</span>
+      <strong id="d-fng">—</strong>
+      <span id="d-fng-badge" class="badge">—</span>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <span class="muted">BTC USD:</span> <strong id="d-usd">—</strong>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <span class="muted">BTC IDR:</span> <strong id="d-idr">—</strong>
+    </div>
+    <p class="muted" id="d-source" style="margin-top:10px;">—</p>
+  </div>
+
+  <div class="card" id="acc">
+    <h2>Akumulasi (berdasarkan log)</h2>
+    <p class="muted">Masukkan nominal cicil per hari (IDR) untuk menghitung akumulasi dari Day 0 sampai hari ini.</p>
+
+    <div class="row" style="margin-top:10px;">
+      <span class="muted">Nominal per hari:</span>
+      <input id="amountIdr" type="number" inputmode="numeric" value="1000000"
+        style="flex:1;min-width:160px;padding:10px;border:1px solid var(--line);font-size:16px;">
+      <button id="btnCalc" style="padding:10px 14px;border:1px solid #000;background:#000;color:#fff;">
+        Hitung
+      </button>
+    </div>
+
+    <div style="margin-top:12px" id="accOut" class="muted">—</div>
+  </div>
+
+  <div class="card" id="log">
+    <h2>Log harian</h2>
+    <div id="logWrap" class="muted">Memuat…</div>
+  </div>
+
+  <script>
+    function fmtIdr(n){ return new Intl.NumberFormat('id-ID').format(Math.round(n)); }
+    function fmtUsd(n){ return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n); }
+
+    function colorBadge(v, el){
+      el.className='badge';
+      if(v<=24) el.classList.add('fng-red');
+      else if(v<=49) el.classList.add('fng-orange');
+      else if(v<=74) el.classList.add('fng-green');
+      else el.classList.add('fng-darkgreen');
     }
 
-    // 2) Coinbase fallback
-    const j2 = await getJson('https://api.coinbase.com/v2/prices/BTC-USD/spot', 'Coinbase');
-    const usd2 = Number(j2.data.amount);
-    if(!usd2) throw new Error('Coinbase invalid');
-    return usd2;
-  }
-
-  // Kurs USD->IDR (lebih stabil)
-  async function getUsdIdr(){
-    const j = await getJson('https://open.er-api.com/v6/latest/USD', 'FX');
-    const idr = Number(j.rates && j.rates.IDR);
-    if(!idr) throw new Error('FX invalid');
-    return idr;
-  }
-
-  function colorBadge(v, el){
-    el.className='badge';
-    if(v<=24) el.classList.add('fng-red');
-    else if(v<=49) el.classList.add('fng-orange');
-    else if(v<=74) el.classList.add('fng-green');
-    else el.classList.add('fng-darkgreen');
-  }
-
-  function shouldBuy(strategy, v){
-    return strategy==='extreme' ? v<=24 : v<=49;
-  }
-
-  async function loadFngCard(){
-    try{
-      const f = await getFngToday();
-      document.getElementById('fng-value').textContent = f.value;
-      const lab = document.getElementById('fng-label');
-      lab.textContent = f.label;
-      colorBadge(f.value, lab);
-      document.getElementById('fng-time').textContent =
-        'Update: ' + new Date(f.ts).toLocaleString('id-ID');
-    }catch(e){
-      document.getElementById('fng-value').textContent='—';
-      document.getElementById('fng-label').textContent='Tidak tersedia';
-      console.log('FNG card error:', e);
+    function shouldBuy(strategy, v){
+      // default: Extreme Fear + Fear
+      // (kita pakai ini untuk akumulasi awal)
+      return v <= 49;
     }
-  }
 
-  async function runSim(){
-    const amount = +document.getElementById('amountIdr').value || 0;
-    if(amount<=0){ alert('Nominal harus > 0'); return; }
+    async function loadLog(){
+      const res = await fetch('/data/log.json?v=' + Date.now(), { cache:'no-store' });
+      if(!res.ok) throw new Error('log.json HTTP ' + res.status);
+      return await res.json();
+    }
 
-    const strategy = document.querySelector('input[name="strategy"]:checked').value;
+    function renderLatest(e){
+      document.getElementById('d-date').textContent = e.date;
+      document.getElementById('d-fng').textContent = String(e.fng_value);
+      const badge = document.getElementById('d-fng-badge');
+      badge.textContent = e.fng_label;
+      colorBadge(e.fng_value, badge);
+      document.getElementById('d-usd').textContent = '$' + fmtUsd(e.btc_usd);
+      document.getElementById('d-idr').textContent = 'Rp ' + fmtIdr(e.btc_idr);
+      document.getElementById('d-source').textContent = e.source || '—';
+    }
 
-    // tampilkan hasil box nanti
-    document.getElementById('simResult').style.display = 'none';
+    function renderTable(entries){
+      let html = '<table><thead><tr><th>Hari</th><th>Tanggal</th><th>F&G</th><th>BTC IDR</th></tr></thead><tbody>';
+      for(let i=0;i<entries.length;i++){
+        const e = entries[i];
+        html += `<tr>
+          <td class="mono">${i}</td>
+          <td class="mono">${e.date}</td>
+          <td>${e.fng_value} (${e.fng_label})</td>
+          <td>Rp ${fmtIdr(e.btc_idr)}</td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      document.getElementById('logWrap').innerHTML = html;
+    }
 
-    try{
-      // Ambil data (FNG + BTC USD + FX)
-      const [f, btcUsd, usdIdr] = await Promise.all([getFngToday(), getBtcUsd(), getUsdIdr()]);
-      const btcIdr = btcUsd * usdIdr;
+    function calcAccum(entries, amountIdr){
+      // Strategi default: cicil saat F&G <= 49 (Fear + Extreme Fear)
+      let totalFiat = 0;
+      let totalBtc = 0;
 
-      const buy = shouldBuy(strategy, f.value);
-      const fiat = buy ? amount : 0;
-      const btcBought = buy ? (amount / btcIdr) : 0;
-      const val = btcBought * btcIdr;
-
-      document.getElementById('rFngValue').textContent = f.value;
-      document.getElementById('rFngLabel').textContent = f.label;
-
-      document.getElementById('rBtcUsd').textContent = fmtUsd(btcUsd);
-      document.getElementById('rFiat').textContent = fmtIdr(fiat);
-      document.getElementById('rBtc').textContent = btcBought.toFixed(8);
-      document.getElementById('rValueIdr').textContent = fmtIdr(val);
-
-      const b = document.getElementById('rPnlBadge');
-      b.className = 'badge';
-      if(val>fiat){ b.textContent='HIJAU'; b.classList.add('fng-green'); }
-      else if(val<fiat){ b.textContent='MERAH'; b.classList.add('fng-red'); }
-      else b.textContent='NETRAL';
-
-      document.getElementById('simResult').style.display = 'block';
-
-      // GA event
-      if(typeof gtag==='function'){
-        gtag('event','sim_run',{event_category:'engagement',event_label:strategy});
+      for(const e of entries){
+        if(shouldBuy('fear', e.fng_value)){
+          totalFiat += amountIdr;
+          totalBtc += amountIdr / e.btc_idr;
+        }
       }
 
-    }catch(err){
-      console.log('SIM error:', err);
-      alert('Gagal ambil data: ' + err.message);
-    }
-  }
+      const latest = entries[entries.length - 1];
+      const valueNow = totalBtc * latest.btc_idr;
 
-  document.addEventListener('DOMContentLoaded', ()=>{
-    loadFngCard();
-    const btn = document.getElementById('runSimBtn');
-    btn.addEventListener('click', (e)=>{ e.preventDefault(); runSim(); });
-  });
-</script>
+      const pnl = valueNow - totalFiat;
+      const pnlPct = totalFiat > 0 ? (pnl / totalFiat) * 100 : 0;
+
+      return { totalFiat, totalBtc, valueNow, pnl, pnlPct };
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      try{
+        const log = await loadLog();
+        const entries = log.entries || [];
+        if(entries.length === 0){
+          document.getElementById('status').textContent = 'Belum ada data. Tunggu GitHub Actions menulis log.';
+          document.getElementById('logWrap').textContent = 'Belum ada data.';
+          return;
+        }
+
+        document.getElementById('status').textContent = 'OK: data terambil dari log.json';
+        const latest = entries[entries.length - 1];
+        renderLatest(latest);
+        renderTable(entries);
+
+        const btn = document.getElementById('btnCalc');
+        btn.addEventListener('click', ()=>{
+          const amount = Number(document.getElementById('amountIdr').value || 0);
+          if(amount <= 0){ alert('Nominal harus > 0'); return; }
+          const r = calcAccum(entries, amount);
+          const out = `
+Total hari log: ${entries.length}<br>
+Hari aktif (F&G ≤ 49): ${entries.filter(e => e.fng_value <= 49).length}<br>
+Total dana disetor: Rp ${fmtIdr(r.totalFiat)}<br>
+Total BTC terkumpul: ${r.totalBtc.toFixed(8)} BTC<br>
+Nilai BTC (harga terbaru): Rp ${fmtIdr(r.valueNow)}<br>
+PnL: Rp ${fmtIdr(r.pnl)} (${r.pnlPct.toFixed(2)}%)
+          `;
+          document.getElementById('accOut').innerHTML = out;
+          if(typeof gtag === 'function') gtag('event','acc_calc',{event_category:'engagement'});
+        });
+
+      }catch(err){
+        console.log(err);
+        document.getElementById('status').textContent = 'Gagal memuat log.json. Refresh halaman.';
+        document.getElementById('logWrap').textContent = 'Gagal memuat log.json.';
+      }
+    });
+  </script>
+</body>
+</html>
