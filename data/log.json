@@ -1,4 +1,15 @@
 {
-  "site_start": null,
-  "entries": []
+  "site_start": "2026-02-04",
+  "entries": [
+    {
+      "date": "2026-02-04",
+      "fng_value": 14,
+      "fng_label": "Extreme Fear",
+      "fng_timestamp": 1770163200,
+      "btc_usd": 73834,
+      "btc_idr": 1239780081,
+      "source": "BTC: CoinGecko (USD+IDR)",
+      "created_at_utc": "2026-02-04T16:04:08.794Z"
+    }
+  ]
 }
