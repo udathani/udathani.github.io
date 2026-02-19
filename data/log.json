@@ -150,6 +150,16 @@
       "btc_idr": 1145914328,
       "source": "BTC: CoinGecko (USD+IDR)",
       "created_at_utc": "2026-02-18T05:16:55.344Z"
+    },
+    {
+      "date": "2026-02-19",
+      "fng_value": 9,
+      "fng_label": "Extreme Fear",
+      "fng_timestamp": 1771459200,
+      "btc_usd": 66758,
+      "btc_idr": 1129356650,
+      "source": "BTC: CoinGecko (USD+IDR)",
+      "created_at_utc": "2026-02-19T05:14:40.391Z"
     }
   ]
 }
