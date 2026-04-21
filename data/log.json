@@ -760,6 +760,16 @@
       "btc_idr": 1279434431,
       "source": "BTC: CoinGecko (USD+IDR)",
       "created_at_utc": "2026-04-20T03:40:36.331Z"
+    },
+    {
+      "date": "2026-04-21",
+      "fng_value": 33,
+      "fng_label": "Fear",
+      "fng_timestamp": 1776729600,
+      "btc_usd": 75713,
+      "btc_idr": 1297818856,
+      "source": "BTC: CoinGecko (USD+IDR)",
+      "created_at_utc": "2026-04-21T03:33:20.007Z"
     }
   ]
 }
