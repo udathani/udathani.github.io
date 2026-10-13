@@ -2510,6 +2510,16 @@
       "btc_idr": 1499163356,
       "source": "BTC: CoinGecko (USD+IDR)",
       "created_at_utc": "2026-10-12T00:23:52.923Z"
+    },
+    {
+      "date": "2026-10-13",
+      "fng_value": 57,
+      "fng_label": "Greed",
+      "fng_timestamp": 1791849600,
+      "btc_usd": 81388,
+      "btc_idr": 1458948424,
+      "source": "BTC: CoinGecko (USD+IDR)",
+      "created_at_utc": "2026-10-13T00:29:10.625Z"
     }
   ]
 }
