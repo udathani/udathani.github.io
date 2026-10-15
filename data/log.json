@@ -2530,6 +2530,16 @@
       "btc_idr": 1491407341,
       "source": "BTC: CoinGecko (USD+IDR)",
       "created_at_utc": "2026-10-14T01:03:08.512Z"
+    },
+    {
+      "date": "2026-10-15",
+      "fng_value": 53,
+      "fng_label": "Neutral",
+      "fng_timestamp": 1792022400,
+      "btc_usd": 80860,
+      "btc_idr": 1450797878,
+      "source": "BTC: CoinGecko (USD+IDR)",
+      "created_at_utc": "2026-10-15T04:17:07.864Z"
     }
   ]
 }
